@@ -34,8 +34,18 @@ class Overview
         $this->rows[$id] = new Row($columns);
     }
 
-    public function label($name, $value)
+	/**
+	 * @param string $name
+	 * @param $value
+	 */
+	public function label($name, $value)
     {
+		// If there is no label set, then we use the field name
+		// as a label
+		if(!$value) {
+			$value = $name;
+		}
+
         $this->labels[$name] = $value;
     }
 

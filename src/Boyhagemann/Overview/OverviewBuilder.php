@@ -118,6 +118,8 @@ class OverviewBuilder
 
         foreach ($this->fields as $field) {
             $element = $this->form->get($field);
+
+			// Get the label for this field
             $label = $element->createView()->vars['label'];
             $overview->label($field, $label);
         }
