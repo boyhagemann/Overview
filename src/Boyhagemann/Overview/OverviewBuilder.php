@@ -112,6 +112,10 @@ class OverviewBuilder
     {
         $overview = new Overview();
 
+		if(!$this->fields) {
+			$this->fields = $this->model->getFillable();
+		}
+
         foreach ($this->fields as $field) {
             $element = $this->form->get($field);
             $label = $element->createView()->vars['label'];
