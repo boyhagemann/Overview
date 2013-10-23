@@ -117,10 +117,15 @@ class OverviewBuilder
 		}
 
         foreach ($this->fields as $field) {
-            $element = $this->form->get($field);
+
+			if(!$this->form->has($field)) {
+				continue;
+			}
 
 			// Get the label for this field
-            $label = $element->createView()->vars['label'];
+			$element = $this->form->get($field);
+			$label = $element->createView()->vars['label'];
+
             $overview->label($field, $label);
         }
 
@@ -132,6 +137,11 @@ class OverviewBuilder
 
             $columns = array();
             foreach ($this->fields as $field) {
+
+				if(!$this->form->has($field)) {
+					continue;
+				}
+
                 $columns[$field] = $this->buildColumn($field, $this->form->get($field), $record);
             }
 
