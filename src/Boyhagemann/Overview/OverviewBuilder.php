@@ -12,7 +12,7 @@ class OverviewBuilder
     protected $model;
     protected $form;
     protected $fields = array();
-    protected $limit = 5;
+    protected $limit = 10;
 
     /**
      * @var QueryBuilder
