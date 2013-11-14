@@ -2,15 +2,15 @@
 
 namespace Boyhagemann\Overview;
 
-use Symfony\Component\Form\Form as Form;
-use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Boyhagemann\Form\FormBuilder;
+use Boyhagemann\Model\ModelBuilder;
+use Boyhagemann\Form\Element\Type\Choice;
 use Illuminate\Database\Query\Builder as QueryBuilder;
-use Illuminate\Database\Eloquent\Model;
 
 class OverviewBuilder
 {
-    protected $model;
-    protected $form;
+    protected $mb;
+    protected $fb;
     protected $fields = array();
     protected $limit = 10;
 
@@ -20,35 +20,35 @@ class OverviewBuilder
     protected $queryBuilder;
 
     /**
-     * @param Form $form
+     * @param FormBuilder $fb
      */
-    public function setForm(Form $form)
+    public function setFormBuilder(FormBuilder $fb)
     {
-        $this->form = $form;
+        $this->fb = $fb;
     }
 
     /**
-     * @return Form
+     * @return FormBuilder
      */
-    public function getForm()
+    public function getFormBuilder()
     {
-        return $this->form;
+        return $this->fb;
     }
 
     /**
-     * @param Model $model
+     * @param ModelBuilder $mb
      */
-    public function setModel(Model $model)
+    public function setModelBuilder(ModelBuilder $mb)
     {
-        $this->model = $model;
+        $this->mb = $mb;
     }
 
     /**
-     * @return Model
+     * @return ModelBuilder
      */
-    public function getModel()
+    public function getModelBuilder()
     {
-        return $this->model;
+        return $this->mb;
     }
 
     /**
@@ -60,7 +60,7 @@ class OverviewBuilder
             return $this->queryBuilder;
         }
 
-        $this->queryBuilder = $this->model->query();
+        $this->queryBuilder = $this->getModelBuilder()->build()->query();
 
         return $this->queryBuilder;
     }
@@ -111,20 +111,23 @@ class OverviewBuilder
     public function build()
     {
         $overview = new Overview();
+        $mb = $this->getModelBuilder();
+        $fb = $this->getFormBuilder();
+        $model = $mb->build();
 
 		if(!$this->fields) {
-			$this->fields = $this->model->getFillable();
+			$this->fields = $model->getFillable();
 		}
 
         foreach ($this->fields as $field) {
 
-			if(!$this->form->has($field)) {
+			if(!$fb->has($field)) {
 				continue;
 			}
 
 			// Get the label for this field
-			$element = $this->form->get($field);
-			$label = $element->createView()->vars['label'];
+			$element = $fb->get($field);
+			$label = $element->getLabel();
 
             $overview->label($field, $label);
         }
@@ -138,11 +141,11 @@ class OverviewBuilder
             $columns = array();
             foreach ($this->fields as $field) {
 
-				if(!$this->form->has($field)) {
+				if(!$fb->has($field)) {
 					continue;
 				}
 
-                $columns[$field] = $this->buildColumn($field, $this->form->get($field), $record);
+                $columns[$field] = $this->buildColumn($field, $fb->get($field), $record);
             }
 
             $overview->row($record->id, $columns);
@@ -153,22 +156,21 @@ class OverviewBuilder
 
     /**
      * @param $field
-     * @param $form
+     * @param $element
      * @param $record
      * @return string
      */
-    public function buildColumn($field, $form, $record)
+    public function buildColumn($name, $element, $record)
     {
-        $type = $form->getConfig()->getType()->getInnerType();
-        $value = $record->$field;
+        $value = $record->$name;
 
-        if ($type instanceof ChoiceType) {
-            $choices = $form->createView()->vars['choices'];
+        if ($element instanceof Choice) {
+            $choices = $element->getChoices();
             $selected = array();
-            foreach ($choices as $choice) {
+            foreach ($choices as $key => $label) {
 
-                if (in_array($choice->value, (array) $value)) {
-                    $selected[] = $choice->label;
+                if (in_array($key, (array) $value)) {
+                    $selected[] = $label;
                 }
             }
 
