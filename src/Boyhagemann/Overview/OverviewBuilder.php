@@ -6,6 +6,7 @@ use Boyhagemann\Form\FormBuilder;
 use Boyhagemann\Model\ModelBuilder;
 use Boyhagemann\Form\Element\Type\Choice;
 use Illuminate\Database\Query\Builder as QueryBuilder;
+use Event;
 
 class OverviewBuilder
 {
@@ -162,22 +163,12 @@ class OverviewBuilder
      */
     public function buildColumn($name, $element, $record)
     {
-        $value = $record->$name;
+		$cell = new Column;
+		$cell->setValue($record->$name);
 
-        if ($element instanceof Choice) {
-            $choices = $element->getChoices();
-            $selected = array();
-            foreach ($choices as $key => $label) {
+		Event::fire('overview.buildColumn', array($cell, $element, $record));
 
-                if (in_array($key, (array) $value)) {
-                    $selected[] = $label;
-                }
-            }
-
-            return implode(', ', $selected);
-        }
-
-        return $value;
+        return $cell->getValue();
     }
 
 }
